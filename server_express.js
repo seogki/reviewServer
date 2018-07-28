@@ -75,7 +75,7 @@ function renameFile(oldname, newname){
 
 
 
-function successPost(){
+function successPost()
 
     var json = {
 
