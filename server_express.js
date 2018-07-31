@@ -20,11 +20,6 @@ var userProfiles = multer({dest: 'userProfiles/'});
 var async = require('async')
 
 
-
-function lol(){
-  console.log(ha)
-}
-
 app.use(bodyParser.urlencoded({
 
                               extended: true
@@ -79,15 +74,9 @@ function renameFile(oldname, newname){
 
 
 
-function successPost()
+function successPost(){
 
-    var json = {
-
-        result : "200"
-
-    };
-
-
+    json = {result : "200"};
 
     return json
 
@@ -102,9 +91,6 @@ function errorPost(){
         result : "에러 발생"
 
     };
-
-
-
     return json
 
 }
