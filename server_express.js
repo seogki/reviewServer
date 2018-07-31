@@ -76,7 +76,7 @@ function renameFile(oldname, newname){
 
 function successPost(){
 
-    json = {result : "200"};
+    var json = {result : "200"};
 
     return json
 
@@ -453,8 +453,137 @@ app.post('/api/RegisterAccountImage',userProfiles.single('userProfile'),function
 
 
 
+app.post('/api/GetHomeReviewItem2',function(req,res, next){
+
+                  console.log("api/GetHomeReviewItem2")
+
+                  var o = {};
+
+                  var key = 'reviewModel';
+
+                  o[key] = [];
 
 
+
+                  var length;
+
+
+
+                  query = 'SELECT id, review_titles, review_photos FROM reviews ORDER BY id DESC LIMIT 10'
+
+
+
+                  con.query(query,function(err,result,fields){
+
+                            if(err) return next(err);
+
+
+
+                            console.log(result.length)
+
+
+
+                            length = result.length
+
+
+
+                            for(var i=0;i<length;i++){
+
+
+
+                            var data = {
+                            reviewId : result[i].id,
+                            title : result[i].review_titles,
+                            images : result[i].review_photos,
+
+                            };
+
+
+
+                            o[key].push(data);
+
+                            }
+
+
+
+                            res.send(o)
+
+
+
+                            console.log("GetHomeReviewItem2 SENT ")
+
+
+
+                            });
+
+
+
+                  });
+
+app.post('/api/GetHomeCommunityItem2',function(req,res, next){
+
+                                    console.log("api/GetHomeCommunityItem2")
+
+                                    var o = {};
+
+                                    var key = 'CommunityModel';
+
+                                    o[key] = [];
+
+
+
+                                    var length;
+
+
+
+                                    query = 'SELECT id, community_title, community_image1 FROM CommunitysItem ORDER BY id DESC LIMIT 10'
+
+                                    con.query(query,function(err,result,fields){
+
+                                              if(err) return next(err);
+
+
+
+                                              console.log(result.length)
+
+
+
+                                              length = result.length
+
+
+
+                                              for(var i=0;i<length;i++){
+
+
+
+                                              var data = {
+                                              communityid : result[i].id,
+                                              title : result[i].community_title,
+                                              images : result[i].community_image1,
+
+                                              };
+
+
+
+                                              o[key].push(data);
+
+                                              }
+
+
+
+                                              res.send(o)
+
+
+
+                                              console.log("GetHomeCommunityItem2 SENT ")
+
+
+
+                                              });
+
+
+
+                                    });
 
 
 app.post('/api/GetReviewItem2',function(req,res, next){
@@ -645,7 +774,7 @@ app.post('/api/GetSearchedReviewItem2',function(req,res, next){
 
                    title : result[i].review_titles,
 
-                   text : result[i].review_texts,
+                   text : result[i].review_texts ,
 
                    images : result[i].review_photos,
 
