@@ -21,6 +21,10 @@ var async = require('async')
 
 
 
+function lol(){
+  console.log(ha)
+}
+
 app.use(bodyParser.urlencoded({
 
                               extended: true
