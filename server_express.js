@@ -241,7 +241,7 @@ Date.prototype.yyyymmddhhmmss = function() {
 
     var ss = this.getSeconds() < 10 ? "0" + this.getSeconds() : this.getSeconds();
 
-    return yyyy + "-" + mm + "-" + dd + "- " + hh + ":" + min + ":" + ss;
+    return yyyy + "-" + mm + "-" + dd + " " + hh + ":" + min + ":" + ss;
 
 };
 
@@ -1858,7 +1858,62 @@ app.post('/api/SetSettingProfileImage',userProfiles.single('images'), (req,res, 
 
          });
 
+app.post('/api/GetSettingNotificationItem', (req,res , next) => {
 
+
+
+                  console.log("/api/GetSettingNotificationItem")
+
+
+
+                  var o = {};
+
+                  var key = 'settingNotificationModel';
+
+                  o[key] = [];
+
+
+
+
+
+                  var query = 'SELECT * FROM Setting_notification ORDER BY id DESC'
+
+
+
+                  con.query(query, (err, result) => {
+
+                            if(err) return next(err);
+
+                            var length = result.length
+
+                            for(var i=0;i<length;i++){
+
+
+
+                            data = {
+
+                            NotificationId : result[i].id,
+
+                            NotificationTitle : result[i].notification_title,
+
+                            NotificationText: result[i].notification_text,
+
+                            NotificationTime : result[i].notification_time
+                            }
+
+                            o[key].push(data)
+
+                            }
+
+                            res.send(o)
+
+
+
+                            });
+
+
+
+                  });
 
 app.post('/api/GetSettingErrorItem', (req,res , next) => {
 
