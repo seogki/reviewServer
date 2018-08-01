@@ -1602,13 +1602,15 @@ app.post('/api/GetInnerCommunityComment',(req,res, next) => {
 
          o[key] = [];
 
-
+         // query = 'SELECT T1.*, T2.user_profile, T2.user_nick FROM reviews as T1 INNER JOIN User as T2 on T1.user_id=T2.user_id ORDER BY T1.id DESC LIMIT 10'
 
          var id = req.query.CommunityId
 
          var data;
 
-         con.query('SELECT * FROM CommunityInnerComment WHERE comment_communityid = ? ORDER BY id DESC',[id], function(err,result){
+         var query = "SELECT T1.*, T2.user_profile FROM CommunityInnerComment as T1 INNER JOIN User as T2 on T1.comment_userid=T2.user_id WHERE comment_communityid = ? ORDER BY id DESC"
+
+         con.query(query,[id], function(err,result){
 
                    if(err) return next(err);
 
@@ -1632,7 +1634,7 @@ app.post('/api/GetInnerCommunityComment',(req,res, next) => {
 
                    comment : result[i].comment_comment,
 
-                   image : result[i].comment_image,
+                   image : result[i].user_profile,
 
                    like : result[i].comment_like
 
