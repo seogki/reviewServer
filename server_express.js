@@ -560,364 +560,148 @@ app.post('/api/GetSearchedCommunityItem', (req,res, next) => {
 });
 
 app.post('/api/GetScrollSearchedCommunityItem', (req,res, next) => {
-
-
-
   console.log("/api/GetScrollSearchedCommunityItem")
-
-
-
   var o = {};
-
   var key = 'CommunityModel';
-
   o[key] = [];
-
-
-
   var id = parseInt(req.query.CommunityId)-1
-
   var commentsCount;
-
-
-
-
-
   var firstResult = [];
-
   var resultlength;
-
   var sizes = 0;
-
-  console.log(req.query.UserId)
-
-  console.log(req.query.SearchText)
-
-  var query2 = 'SELECT T1.*, T2.user_profile FROM reviews as T1 INNER JOIN User as T2 on T1.user_id=T2.user_id WHERE T1.id < ? AND T1.review_titles LIKE ? ORDER BY T1.id DESC LIMIT 10'
-
-
-
   async.waterfall([
 
-
-
     function(callback){
-
       con.query("SELECT id,user_id,user_nick,community_title,community_text,community_image1,community_times FROM CommunitysItem WHERE id < ? AND community_title LIKE ? ORDER BY id DESC LIMIT 10",[id,'%' + req.query.SearchText + '%'],function(err,result){
-
         console.log(result.length)
-
         if(result.length == 0){
-
           res.json(o)
-
         } else {
-
           firstResult = result
-
           resultlength = result.length
-
           callback(null,firstResult)
-
         }
-
       });
-
     },
-
     function(firstdata, callback){
-
       for(var i =0; i<resultlength; i++){
-
         con.query('SELECT id FROM CommunityInnerComment WHERE comment_communityid = ?',[firstdata[i].id], function(err, rows, fields){
-
           if(err) return next(err);
-
-
-
           var data = {
-
             userid : firstResult[sizes].user_id,
-
             communityid : firstResult[sizes].id,
-
             nickname : firstResult[sizes].user_nick,
-
             time : timeSince(getDataFromString(firstResult[sizes].community_times)),
-
             title : firstResult[sizes].community_title,
-
             text : firstResult[sizes].community_text,
-
             image : firstResult[sizes].community_image1,
-
             comments : rows.length
-
           }
-
-
-
           o[key].push(data);
-
           sizes++;
-
-
-
           if(sizes == resultlength){
-
             callback(null,o)
-
           }
-
         });
-
       }
-
     }
-
   ], function(err,data){
-
     if(err) return next(err);
-
     res.json(data)
-
     console.log("COMMUNITY ITEM SENT")
-
-
-
   });
-
 });
 
-
-
 app.post('/api/GetInnerCommunityItem',(req,res, next) => {
-
   console.log("/api/GetInnerCommunityItem")
-
-
-
   console.log(req.query)
-
   var id = req.query.CommunityId
-
-
-
   var data;
-
   con.query('SELECT * FROM CommunitysItem WHERE id = ?',[id],function(err,result){
-
     if(err) return next(err);
-
-
-
     for(var i = 0;i<result.length;i++){
-
-
-
       data = {
-
         userid : result[i].user_id,
-
         communityid : result[i].id,
-
         nickname : result[i].user_nick,
-
         time : result[i].community_times,
-
         title : result[i].community_title,
-
         text : result[i].community_text,
-
         image1 : result[i].community_image1,
-
         image2 : result[i].community_image2,
-
         image3 : result[i].community_image3,
-
         image4 : result[i].community_image4
-
       }
-
-
-
     }
-
     res.json(data)
-
-
-
     console.log("Inner Community Item Sent")
-
-
-
   })
-
-
-
 })
 
-
-
 app.post('/api/GetInnerCommunityComment',(req,res, next) => {
-
   console.log("/api/GetInnerCommunityComment")
-
-
-
-  console.log(req.query)
-
   var o = {};
-
   var key = 'CommunityInnerCommentModel';
-
   o[key] = [];
-
-  // query = 'SELECT T1.*, T2.user_profile, T2.user_nick FROM reviews as T1 INNER JOIN User as T2 on T1.user_id=T2.user_id ORDER BY T1.id DESC LIMIT 10'
-
   var id = req.query.CommunityId
-
   var data;
-
   var query = "SELECT T1.*, T2.user_profile FROM CommunityInnerComment as T1 INNER JOIN User as T2 on T1.comment_userid=T2.user_id WHERE comment_communityid = ? ORDER BY id DESC"
 
   con.query(query,[id], function(err,result){
-
     if(err) return next(err);
-
-
-
     for(var i = 0;i<result.length;i++){
-
-
-
       data = {
-
         commentid : result[i].id,
-
         userid : result[i].comment_userid,
-
         communityid : result[i].comment_communityid,
-
         nickname : result[i].comment_nickname,
-
         time : timeSince(getDataFromString(result[i].comment_time)),
-
         comment : result[i].comment_comment,
-
         image : result[i].user_profile,
-
         like : result[i].comment_like
-
       }
-
       o[key].push(data);
-
     }
-
     res.json(o)
-
-
-
     console.log("Inner Community Item Sent")
-
   })
-
 })
 
-
-
 app.post('/api/SetInnerCommunityComment',(req,res, next) => {
-
-
-
-  console.log(req.query)
-
-
-
   var userid = req.query.UserId
-
   var cid = req.query.CommunityId
-
   var username = req.query.UserNick
-
   var comment = req.query.Comment
-
   var image = req.query.UserImage
-
   var date = new Date().yyyymmddhhmmss()
-
-
-
   var param = [userid, cid, username, date, comment, image, 0]
 
-
-
   con.query('INSERT INTO CommunityInnerComment(comment_userid,comment_communityid,comment_nickname,comment_time,comment_comment,comment_image,comment_like) VALUES (?,?,?,?,?,?,?)',param,function(err,result){
-
     if(err) return next(err);
-
-
-
     res.json(successPost())
-
     console.log("Inner Comment Inserted Successfully")
-
   });
-
-
-
 });
 
 app.post('/api/GetSettingUserProfile', (req,res, next) => {
-
-
-
   console.log("/api/GetSettingUserProfile")
-
-
-
   var query = 'SELECT * FROM User where user_id = ?'
-
   var userid = req.query.UserId
-
   var data;
-
   con.query(query,[userid],(err, result) => {
-
-
-
     if(err) return next(err);
-
-
-
     data = {
-
       UserId : result[0].user_id,
-
       UserNick : result[0].user_nick,
-
       UserEmail: result[0].user_email,
-
       UserProfile : result[0].user_profile,
-
       UserAge: result[0].user_age,
-
       UserGender: result[0].user_gender
-
     }
-
-
-
     res.json(data)
-
     console.log("Sent UserProfile")
-
   });
-
 });
-
-
 
 app.post('/api/SetSettingProfileImage',userProfiles.single('images'), (req,res, next) => {
   console.log("api/SetSettingProfileImage")
