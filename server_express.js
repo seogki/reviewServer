@@ -380,443 +380,184 @@ app.post('/api/SetReviewPhotos',upload.single('images'),(req,res, next) => {
   })
 });
 
-
-
 app.post('/api/SetCommunityPhotos',communitys.array('images',4),(req,res, next) => {
-
   console.log("/api/setCommunityPhotos")
-
-
-
   var UserId = req.body.UserId
-
   var UserNick = req.body.UserNick
-
   var Title = req.body.QuestionTitle
-
   var Text = req.body.QuestionText
-
   var newFilePaths = new Array(4);
-
   var date = new Date().yyyymmddhhmmss()
-
-
-
   for(var i = 0; i< req.files.length ; i++) {
-
-
-
     var ds = (new Date()).toISOString().replace(/[^0-9]/g, "");
-
     var oldFilePath = 'communitys/'+req.files[i].filename
-
-    console.log(oldFilePath)
-
-
-
     var newFilePath = 'communitys/'+req.files[i].filename +'_'+date+'.jpg'
-
-
-
     renameFile(oldFilePath,newFilePath)
-
-
-
     newFilePaths[i] = newFilePath
-
-
-
   }
-
-
-
   var param = [UserId, UserNick,Title,Text, newFilePaths[0],newFilePaths[1],newFilePaths[2],newFilePaths[3],date];
 
   con.query("INSERT INTO CommunitysItem(user_id,user_nick,community_title,community_text,community_image1,community_image2,community_image3,community_image4,community_times) VALUES (?,?,?,?,?,?,?,?,?)",param,function(err, result){
-
     if(err) {
-
       removeFile(newFilePath[0])
-
       removeFile(newFilePath[1])
-
       removeFile(newFilePath[2])
-
       removeFile(newFilePath[3])
-
       return next(err);
-
     }
-
-
-
     res.json(successPost())
-
     console.log("Community ADDED");
-
   })
-
-
-
-
-
 })
 
-
-
 app.post('/api/GetCommunityItem', (req,res, next) => {
-
-
-
   console.log("/api/GetCommunityItem")
-
-
-
   var o = {};
-
   var key = 'CommunityModel';
-
   o[key] = [];
-
-
-
   var firstResult = [];
-
   var resultlength;
-
   var sizes = 0;
-
   async.waterfall([
-
-
 
     function(callback){
 
       con.query("SELECT id,user_id,user_nick,community_title,community_text,community_image1,community_times FROM CommunitysItem ORDER BY id DESC LIMIT 10",function(err,result){
-
         firstResult = result
-
         resultlength = result.length
-
         callback(null,firstResult)
-
       })
-
     },
 
     function(firstdata, callback){
-
       for(var i =0; i<resultlength; i++){
-
         con.query('SELECT id FROM CommunityInnerComment WHERE comment_communityid = ?',[firstdata[i].id], function(err, rows, fields){
-
           if(err) return next(err);
-
-
-
           var data = {
-
             userid : firstResult[sizes].user_id,
-
             communityid : firstResult[sizes].id,
-
             nickname : firstResult[sizes].user_nick,
-
             time : timeSince(getDataFromString(firstResult[sizes].community_times)),
-
             title : firstResult[sizes].community_title,
-
             text : firstResult[sizes].community_text,
-
             image : firstResult[sizes].community_image1,
-
             comments : rows.length
-
           }
-
-
-
           o[key].push(data);
-
           sizes++;
-
-
-
           if(sizes == resultlength){
-
             callback(null,o)
-
           }
-
         });
-
       }
-
     }
-
   ], function(err,data){
-
     if(err) return next(err);
-
     res.json(data)
-
     console.log("COMMUNITY ITEM SENT")
-
-
-
   });
-
-
-
 });
 
-
-
 app.post('/api/ScrollGetCommunityItem', (req,res, next) => {
-
-
-
   console.log("/api/ScrollGetCommunityItem")
-
-
-
   var o = {};
-
   var key = 'CommunityModel';
-
   o[key] = [];
-
-
-
   var id = parseInt(req.query.CommunityId)-1
-
   var commentsCount;
-
-
-
-
-
   var firstResult = [];
-
   var resultlength;
-
   var sizes = 0;
-
-
-
-
-
   async.waterfall([
-
-
 
     function(callback){
 
       con.query("SELECT id,user_id,user_nick,community_title,community_text,community_image1,community_times FROM CommunitysItem WHERE id BETWEEN ? AND ? ORDER BY id DESC",[id-9,id],function(err,result){
-
-        console.log(result.length)
-
         if(result.length == 0){
-
           res.json(o)
-
         } else {
-
           firstResult = result
-
           resultlength = result.length
-
           callback(null,firstResult)
-
         }
-
       });
-
     },
-
     function(firstdata, callback){
-
       for(var i =0; i<resultlength; i++){
-
         con.query('SELECT id FROM CommunityInnerComment WHERE comment_communityid = ?',[firstdata[i].id], function(err, rows, fields){
-
           if(err) return next(err);
-
-
-
           var data = {
-
             userid : firstResult[sizes].user_id,
-
             communityid : firstResult[sizes].id,
-
             nickname : firstResult[sizes].user_nick,
-
             time : timeSince(getDataFromString(firstResult[sizes].community_times)),
-
             title : firstResult[sizes].community_title,
-
             text : firstResult[sizes].community_text,
-
             image : firstResult[sizes].community_image1,
-
             comments : rows.length
-
           }
-
-
-
           o[key].push(data);
-
           sizes++;
-
-
-
           if(sizes == resultlength){
-
             callback(null,o)
-
           }
-
         });
-
       }
-
     }
-
   ], function(err,data){
-
     if(err) return next(err);
-
     res.json(data)
-
     console.log("COMMUNITY ITEM SENT")
-
-
-
   });
-
 });
-
-
-
-
 
 app.post('/api/GetSearchedCommunityItem', (req,res, next) => {
-
-
-
   console.log("/api/GetSearchedCommunityItem")
-
-
-
   var o = {};
-
   var key = 'CommunityModel';
-
   o[key] = [];
-
-
-
   var firstResult = [];
-
   var resultlength;
-
   var sizes = 0;
-
-
-
   console.log(req.query.UserId)
-
   console.log(req.query.SearchText)
-
-
-
   async.waterfall([
 
-
-
     function(callback){
-
       con.query('SELECT id,user_id,user_nick,community_title,community_text,community_image1,community_times FROM CommunitysItem WHERE community_title LIKE ? ORDER BY id DESC LIMIT 10',['%'+req.query.SearchText+'%'],function(err,result){
-
         firstResult = result
-
         resultlength = result.length
-
         callback(null,firstResult)
-
       })
-
     },
-
     function(firstdata, callback){
-
       for(var i =0; i<resultlength; i++){
-
         con.query('SELECT id FROM CommunityInnerComment WHERE comment_communityid = ?',[firstdata[i].id], function(err, rows, fields){
-
           if(err) return next(err);
-
-
-
           var data = {
-
             userid : firstResult[sizes].user_id,
-
             communityid : firstResult[sizes].id,
-
             nickname : firstResult[sizes].user_nick,
-
             time : timeSince(getDataFromString(firstResult[sizes].community_times)),
-
             title : firstResult[sizes].community_title,
-
             text : firstResult[sizes].community_text,
-
             image : firstResult[sizes].community_image1,
-
             comments : rows.length
-
           }
-
-
-
           o[key].push(data);
-
           sizes++;
-
-
-
           if(sizes == resultlength){
-
             callback(null,o)
-
           }
-
         });
-
       }
-
     }
-
   ], function(err,data){
-
     if(err) return next(err);
-
     res.json(data)
-
     console.log("COMMUNITY ITEM SENT")
-
-
-
   });
-
-
-
 });
-
-
 
 app.post('/api/GetScrollSearchedCommunityItem', (req,res, next) => {
 
@@ -1179,350 +920,138 @@ app.post('/api/GetSettingUserProfile', (req,res, next) => {
 
 
 app.post('/api/SetSettingProfileImage',userProfiles.single('images'), (req,res, next) => {
-
   console.log("api/SetSettingProfileImage")
-
-
-
   var userid = req.body.UserId
-
   var oldprofiles;
-
-
-
   async.waterfall([
 
-
-
     function(callback){
-
       con.query("SELECT user_profile FROM User WHERE user_id = ? ",[userid],function(err,result){
-
         console.log(result)
-
         if(result != null){
-
           oldprofiles = result[0].user_profile;
-
-
-
           removeFile(oldprofiles)
-
-
-
         }
-
         callback(null)
-
       });
-
     },
-
     function(callback){
-
-
-
       var filenames = req.file.originalname
-
       var ds = new Date().yyyymmddhhmmss()
-
       var oldFilePath = 'userProfiles/'+req.file.filename
-
       var newFilePath = 'userProfiles/'+req.file.filename +'_'+new Date().yyyymmddhhmmss()+'.jpg'
-
-
-
-      fs.rename(oldFilePath, newFilePath, function (err) {
-
-        if (err) {console.log(err); return; }
-
-
-
-        console.log('The file has been re-named to: ' + newFilePath);
-
-      });
-
-
-
+      renameFile(oldFilePath, newFilePath)
       var param = [newFilePath, req.body.UserId];
-
       con.query("Update User SET user_profile = ? WHERE user_id = ? ",param,function(err, result){
-
         if(err) {
-
           removeFile(newFilePath)
-
           return next(err);
-
         }
-
       });
-
-
-
-
-
       callback(null,successPost())
-
     }
-
   ], function(err,data){
-
     if(err) return next(err);
-
     res.json(data)
-
     console.log("Setting api profiles changed")
-
-
-
   });
-
-
-
-
-
-
-
-
-
 });
 
 app.post('/api/GetSettingNotificationItem', (req,res , next) => {
-
-
-
   console.log("/api/GetSettingNotificationItem")
-
-
-
   var o = {};
-
   var key = 'settingNotificationModel';
-
   o[key] = [];
-
-
-
-
-
   var query = 'SELECT * FROM Setting_notification ORDER BY id DESC'
 
-
-
   con.query(query, (err, result) => {
-
     if(err) return next(err);
-
     var length = result.length
-
     for(var i=0;i<length;i++){
-
-
-
       data = {
-
         NotificationId : result[i].id,
-
         NotificationTitle : result[i].notification_title,
-
         NotificationText: result[i].notification_text,
-
         NotificationTime : result[i].notification_time
       }
-
       o[key].push(data)
-
     }
-
     res.send(o)
-
-
-
   });
-
-
-
 });
 
 app.post('/api/GetSettingErrorItem', (req,res , next) => {
-
-
-
   console.log("/api/GetSettingErrorItem")
-
-
-
   var o = {};
-
   var key = 'settingErrorModel';
-
   o[key] = [];
-
-
-
-
-
   var query = 'SELECT * FROM Errors ORDER BY id DESC LIMIT 20'
-
-
-
   con.query(query, (err, result) => {
-
     if(err) return next(err);
-
-
-
     console.log("error SELECT DONE")
-
     var length = result.length
-
     for(var i=0;i<length;i++){
-
-
-
       data = {
-
         UserId : result[i].user_id,
-
         ErrorTitle : result[i].error_title,
-
         ErrorContent: result[i].error_content,
-
         Errorid : result[i].id,
-
         ErrorDate: result[i].error_time,
-
         ErrorTab: result[i].error_tab
-
       }
-
       o[key].push(data)
-
     }
-
     res.send(o)
-
-
-
   });
-
-
-
 });
-
-
 
 app.post('/api/SetSettingErrorItem', (req,res, next) => {
-
-
-
   console.log("/api/SetSettingErrorItem")
-
   var id = req.query.UserId
-
   var title = req.query.ErrorTitle
-
   var content = req.query.ErrorContent
-
   var time = new Date().yyyymmddhhmmss()
-
   var tab = req.query.ErrorTab
-
-
-
   var query = 'INSERT INTO Errors(user_id, error_title, error_content, error_time, error_tab) VALUES (?,?,?,?,?)'
 
-
-
   con.query(query,[id,title,content,time,tab], (err, result) => {
-
     if(err) return next(err);
-
     console.log("error INSERT DONE")
-
     res.send(successPost())
-
-
-
   });
-
-
-
 });
-
-
-
-
 
 app.get('/uploads/:name',function(req,res){
-
   var filename = req.params.name
-
-
-
-
-
   fs.readFile('uploads/'+filename, function(err, content){
-
     if (err) {
-
       res.writeHead(400, {'Content-type':'text/html'})
-
       console.log(err);
-
       res.end("No such image");
-
     } else {
-
       res.writeHead(200,{'Content-type':'image/jpg'});
-
       res.end(content);
-
     }
-
   });
-
 });
-
-
 
 app.get('/userProfiles/:name',function(req,res){
-
   var filename = req.params.name
-
-
-
   fs.readFile('userProfiles/'+filename, function(err, content){
-
     if (err) {
-
       res.writeHead(400, {'Content-type':'text/html'})
-
       console.log(err);
-
       res.end("No such image");
-
     } else {
-
       res.writeHead(200,{'Content-type':'image/jpg'});
-
       res.end(content);
-
     }
-
   });
-
 });
 
-
-
 app.get('/communitys/:name',function(req,res){
-
   var filename = req.params.name
-
   fs.readFile('communitys/'+filename, function(err, content){
-
     if (err) {
       res.writeHead(400, {'Content-type':'text/html'})
       console.log(err);
@@ -1531,14 +1060,12 @@ app.get('/communitys/:name',function(req,res){
       res.writeHead(200,{'Content-type':'image/jpg'});
       res.end(content);
     }
-
   });
 });
 
 
 app.use(function(err, req, res, next){
   res.send({ message : error.message })
-
 });
 
 
